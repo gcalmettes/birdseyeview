@@ -1,0 +1,87 @@
+<html>
+  <head>
+    
+  </head>
+  <body>
+
+    <div id="viz"></div>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+    <!-- optional if mapbox base map is needed -->
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+    <script>
+      const width = 800,
+            height = 800
+  
+      const container = d3.select("#viz")
+              .style('width', `100%`)
+              .style('height', `${height}px`)
+  
+      const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ2NhbG1ldHRlcyIsImEiOiJjanp2bHd1cjQwY3Q1M2RxaW8ycWgzZjFvIn0.-Zj29UJ3A7_k7-wTEXvUEg'
+      
+      const deckgl = new deck.DeckGL({
+        container: container.node(),//'viz-container',
+        // map: mapboxgl,
+        mapboxApiAccessToken: MAPBOX_TOKEN,
+        mapStyle: 'mapbox://styles/mapbox/dark-v9',
+        latitude: 34.1323,
+        longitude: -118.376,
+        zoom: 10,
+        minZoom: 5,
+        maxZoom: 15,
+        pitch: 40.5
+      });
+
+      let data = null;
+
+      const COLOR_RANGE = [
+        [1, 152, 189],
+        [73, 227, 206],
+        [216, 254, 181],
+        [254, 237, 177],
+        [254, 173, 84],
+        [209, 55, 78]
+      ];
+
+      function renderLayer () {
+        const options = {
+            'radius': 250,
+            'coverage': 1,
+            'upperPercentile': 100
+        };
+
+        const hexagonLayer = new deck.HexagonLayer({
+          id: 'heatmap',
+          colorRange: COLOR_RANGE,
+          data,
+          elevationRange: [0, 1000],
+          elevationScale: 25,
+          extruded: true,
+          getPosition: d => d,
+          opacity: 1,
+          ...options
+        });
+
+        deckgl.setProps({
+          layers: [hexagonLayer]
+        });
+      }
+
+      Promise.all([
+        d3.json('https://mds.bird.co/gbfs/los-angeles/free_bikes'),
+        d3.json('https://mds.bird.co/gbfs/santamonica/free_bikes')
+      ])
+      // d3.json('https://mds.bird.co/gbfs/los-angeles/free_bikes')
+        .then(([response_la, response_sm]) => {
+          data = [...response_la.data.bikes, ...response_sm.data.bikes]
+          // console.log([response_la, response_sm])
+          // data = response.data.bikes
+            .map(d => [Number(d.lon), Number(d.lat)]);
+          renderLayer();
+        })
+    </script>
+    
+  </body>
+</html>
