@@ -3,6 +3,24 @@
     
   </head>
   <body>
+    <style type="text/css">
+      .data-panel {
+        position: absolute;
+        top: 0;
+        font-family: Nunito, sans-serif;
+        font-size: 12px;
+        background-color: #f6f6f6;
+        padding: 10px;
+        border-radius: 3px;
+        box-shadow: 1px 2px 4px #888;
+        z-index: 10;
+      }
+    </style>
+
+    <div class="data-panel">
+      <i>Current data:</i> <b id='data-time'></b>
+      <br />
+    </div>
 
     <div id="viz"></div>
 
@@ -18,6 +36,8 @@
       const container = d3.select("#viz")
               .style('width', `100%`)
               .style('height', `${height}px`)
+
+      const dateContainer = d3.select("#data-time")
   
       const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ2NhbG1ldHRlcyIsImEiOiJjanp2bHd1cjQwY3Q1M2RxaW8ycWgzZjFvIn0.-Zj29UJ3A7_k7-wTEXvUEg'
       
@@ -76,9 +96,11 @@
       // d3.json('https://mds.bird.co/gbfs/los-angeles/free_bikes')
         .then(([response_la, response_sm]) => {
           data = [...response_la.data.bikes, ...response_sm.data.bikes]
-          // console.log([response_la, response_sm])
-          // data = response.data.bikes
             .map(d => [Number(d.lon), Number(d.lat)]);
+
+          const date = new Date(response_la.last_updated*1000).toLocaleString()
+          dateContainer.text(date)
+          
           renderLayer();
         })
     </script>
